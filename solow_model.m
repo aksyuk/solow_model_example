@@ -113,8 +113,8 @@ err = sqrt(mean((Y_fit-Y) .^ 2)) / mean(Y)
 x0 = [0.0001, 0.0001, 0.0001];    % A, alpha_K, alpha_L
 n = length(Y);
 
-res = array2table(zeros(19, 5), 'VariableNames', {'w', 'A', 'alpha_K', ...
-    'alpha_L', 'err'});
+res = array2table(zeros(19, 5), 'VariableNames', {'tau', 'A', ...
+    'alpha_K', 'alpha_L', 'err'});
 count = 1;
 for i = 1:19
     T = @(x) CB_target(K, L, Y, x, i);
@@ -123,9 +123,9 @@ for i = 1:19
     res{count, 1} = i; res{count, 2:4} = x2; res{count, 5} = fval2;
     count = count + 1;
 end
-indx = find(res.err(2:end) - res.err(1:end-1) == ...
-    min(res.err(2:end) - res.err(1:end-1)));
-x2 = res{indx + 1, 2:4};
+res.err = sqrt(res.err ./ (n-res.tau+1)); 
+indx = find(res.err == min(res.err));
+x2 = res{indx, 2:4}
 Y_fit = x2(1) .* K .^ x2(2) .* L .^ x2(3);
 
 % график прогноз-реализация
@@ -136,8 +136,8 @@ Y_fit = x2(1) .* K .^ x2(2) .* L .^ x2(3);
 
 hold on
 scatter(Y, Y_fit)
-legend('Модель с окном 25 наблюдений', 'Идеальный прогноз', ...
-    'Модель по всем 27 наблюдениям')
+legend('Модель по данным 2008-2016 гг.', 'Идеальный прогноз', ...
+    'Модель по данным 1990-2016 гг.')
 saveas(gcf, "~/Documents/MATLAB/plots/plot_mod_vs_fit.png");
 
 
@@ -195,7 +195,7 @@ plot(x0, y0, 'k', x0, y1, 'r', x0, y2, 'b', ...
 xlabel('k'); ylabel('y'); title('Модель Солоу, равновесие');
 legend({'\it{f(k)}', '\it{(1-\rho)f(k)}', '\it{k(\mu+\nu)(1-\rho)/\rho}'});
 text([0, 0, v0{1, 'k'}] + 10^5, ...
-    [v0{1, 'y'}, v0{1, 'y'} * (1-rho), 0] + 10^6/2, ...
+    [v0{1, 'y'}, v0{1, 'y'} * (1-rho), 0] + 10^5, ...
     {'\it{f(k^*)}', '\it{(1-\rho)f(k^*)}', '\it{k^*}'});
 saveas(gcf, "~/Documents/MATLAB/plots/plot_eq-01.png");
 
@@ -214,4 +214,7 @@ saveas(gcf, "~/Documents/MATLAB/plots/plot_eq-01.png");
 % tbl = array2table([dt.year, dt.NY_GNS_ICTR_ZS, mu_stats], 'VariableNames', ...
 %     {'год', 'rho', 'nu'});
 % writetable(tbl, "~/Documents/MATLAB/solow_param_matlab.csv", ...
+%     'Delimiter', ';');
+% %  * для результатов оптимизации (функция Кобба-Дугласа)
+% writetable(res, "~/Documents/MATLAB/solow_res_matlab.csv", ...
 %     'Delimiter', ';');
