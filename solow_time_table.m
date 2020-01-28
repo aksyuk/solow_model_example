@@ -1,0 +1,46 @@
+function [vars_trace, vars_0] = solow_time_table (K_0, L_0, A, alpha_K, ...
+    alpha_L, rho, mu, nu, T, file_name)
+
+vars_trace = zeros(T, 9);
+col_names = {'t', 'K_t', 'L_t', 'Y_t', 'I_t', 'C_t', 'k_t', 'y_t', 'c_t'};
+vars_trace = array2table(vars_trace, 'VariableNames', col_names);
+
+vars_trace{1, "t"} = 1;
+vars_trace(1, ["K_t", "L_t"]) = {K_0, L_0};
+vars_trace(1, "Y_t") = {A * vars_trace{1, "K_t"}^alpha_K * ...
+    vars_trace{1, "L_t"}^alpha_L};
+vars_trace(1, ["I_t", "C_t", "k_t", "y_t"]) = {rho * vars_trace{1, "Y_t"}, ...
+    (1-rho) * vars_trace{1, "Y_t"}, ...
+    vars_trace{1, "K_t"} / vars_trace{1, "L_t"}, ...
+    vars_trace{1, "Y_t"} / vars_trace{1, "L_t"}};
+vars_trace{1, "c_t"} = vars_trace{1, "C_t"} / vars_trace{1, "L_t"};
+
+for t = 2:T
+    vars_trace{t, "t"} = t;
+    vars_trace(t, ["K_t", "L_t"]) = {vars_trace{t-1, "K_t"} - ...
+        mu * vars_trace{t-1, "K_t"} + rho * vars_trace{t-1, "Y_t"}, ...
+        vars_trace{t-1, "L_t"} * (1+nu)};
+    vars_trace(t, "Y_t") = {A * vars_trace{t, "K_t"}^alpha_K * ...
+        vars_trace{t, "L_t"}^alpha_L};
+    vars_trace(t, ["I_t", "C_t"]) = {rho * vars_trace{t, "Y_t"}, ...
+        (1-rho) * vars_trace{t, "Y_t"}};
+    vars_trace(t, ["k_t", "y_t", "c_t"]) = ...
+        {vars_trace{t, "K_t"} / vars_trace{t, "L_t"}, ...
+        vars_trace{t, "Y_t"} / vars_trace{t, "L_t"}, ...
+        vars_trace{t, "C_t"} / vars_trace{t, "L_t"}};
+end
+
+% стационарное значение фондовооружённости
+vars_0 = [(rho * A / (mu + nu)) ^ (1/(1-alpha_K)), 0, 0];
+vars_0(2) = A * vars_0(1) ^ alpha_K;
+vars_0(3) = vars_0(2) * (1-rho);
+vars_0 = array2table(vars_0, 'VariableNames', {'k', 'y', 'c'});
+
+clf
+plot(vars_trace.t, vars_trace.k_t, vars_trace.t, ...
+    ones(T, 1) * vars_0{1, 'k'}, 'r--')
+xlabel('время'); ylabel({'Фондовооружённость,'; 'долл. США на человека'})
+legend('Динамика фондовооружённости', ...
+    ['Стационарное значение k = ', num2str(round(vars_0{1, 'k'}, 0))]);
+saveas(gcf, file_name);
+
