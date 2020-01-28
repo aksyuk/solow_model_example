@@ -103,18 +103,20 @@ K = dt.NE_GDI_FTOT_KD ./ 10^6;
 L = dt.SL_TLF_TOTL_IN ./ 10^6;
 
 % функция Кобба-Дугласа (МНК на натуральных логарифмах)
-X = [ones(length(K),1) log(K), log(L)];
-b = X \ log(Y);
-Y_fit = X * b;
+X = [ones(length(K),1) log(K)-log(L)];
+b = X \ log(Y); Y_fit = exp(X * b);
+A_lsq = exp(b(1)-1)
+alpha_lsq = b(2)
+err = sqrt(mean((Y_fit-Y) .^ 2)) / mean(Y)
 
 % ищем параметры нелинейной целевой функции нескольких переменных
-x0 = [0.0001, 0.0001, 0.0001];
+x0 = [0.0001, 0.0001, 0.0001];    % A, alpha_K, alpha_L
 n = length(Y);
-count = 1;
 
-res = array2table(zeros(n-1, 5), 'VariableNames', {'w', 'A', 'alpha_K', ...
+res = array2table(zeros(19, 5), 'VariableNames', {'w', 'A', 'alpha_K', ...
     'alpha_L', 'err'});
-for i = 2:n
+count = 1;
+for i = 1:19
     T = @(x) CB_target(K, L, Y, x, i);
     [x2, fval2] = fmincon(T, x0, [-1, 0, 0], 0, [0, 1, 1], 1, ...
         [0, 0, 0], [inf, 1, 1]);
