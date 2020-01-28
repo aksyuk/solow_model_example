@@ -203,7 +203,13 @@ saveas(gcf, "~/Documents/MATLAB/plots/plot_eq-01.png");
 %     {'год', 'K', 'L', 'Y', 'I'});
 % writetable(tbl, "~/Documents/MATLAB/solow_vars_matlab.csv", ...
 %     'Delimiter', ';');
-% %  * для параметров
+% %  * для параметров: норма амортизации
 % depr.Properties.VariableNames = string(depr{1, :}); depr(1, :) = [];
 % writetable(depr, "~/Documents/MATLAB/solow_depr_matlab.csv", ...
+%     'Delimiter', ';');
+%  * для параметров: норма инвестирования и темп прироста рабочей силы
+% mu_stats = [NaN; dt.SL_TLF_TOTL_IN(2:end) ./ dt.SL_TLF_TOTL_IN(1:end-1)-1];
+% tbl = array2table([dt.year, dt.NY_GNS_ICTR_ZS, mu_stats], 'VariableNames', ...
+%     {'год', 'rho', 'nu'});
+% writetable(tbl, "~/Documents/MATLAB/solow_param_matlab.csv", ...
 %     'Delimiter', ';');
